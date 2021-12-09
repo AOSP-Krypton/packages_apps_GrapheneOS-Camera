@@ -17,6 +17,7 @@ android_app {
     platform_apis: true,
     certificate: "platform",
     system_ext_specific: true,
+    overrides: ["Snap", "Camera2"],
     srcs: [
         "src/main/java/**/*.kt",
     ],
