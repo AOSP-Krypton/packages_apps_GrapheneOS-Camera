@@ -1,0 +1,61 @@
+// Copyright (C) 2021 AOSP-Krypton Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+android_library_import {
+    name: "androidx.camera_camera-camera2",
+    aars: ["androidx.camera/camera-camera2/camera-camera2-*.aar"],
+    sdk_version: "current",
+}
+
+android_library_import {
+    name: "androidx.camera_camera-core",
+    aars: ["androidx.camera/camera-core/camera-core-*.aar"],
+    sdk_version: "current",
+}
+
+android_library_import {
+    name: "androidx.camera_camera-extensions",
+    aars: ["androidx.camera/camera-extensions/camera-extensions-*.aar"],
+    sdk_version: "current",
+}
+
+android_library_import {
+    name: "androidx.camera_camera-lifecycle",
+    aars: ["androidx.camera/camera-lifecycle/camera-lifecycle-*.aar"],
+    sdk_version: "current",
+}
+
+android_library_import {
+    name: "androidx.camera_camera-video",
+    aars: ["androidx.camera/camera-video/camera-video-*.aar"],
+    sdk_version: "current",
+}
+
+android_library_import {
+    name: "androidx.camera_camera-view",
+    aars: ["androidx.camera/camera-view/camera-view-*.aar"],
+    sdk_version: "current",
+}
+
+java_import {
+    name: "androidx.concurrent_concurrent-futures",
+    jars: ["androidx.concurrent/concurrent-futures/concurrent-futures-*.jar"],
+    sdk_version: "current",
+}
+
+java_import {
+    name: "com.google.zxing_core",
+    jars: ["com.google.zxing/core/core-*.jar"],
+    sdk_version: "current",
+}

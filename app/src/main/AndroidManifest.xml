@@ -20,6 +20,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
 
+        <uses-library android:name="androidx.camera.extensions.impl"
+            android:required="false" />
 
         <!-- The main activity of the app (supports all modes) -->
         <activity
