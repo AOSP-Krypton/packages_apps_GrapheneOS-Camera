@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -203,6 +204,37 @@ class MoreSettings : AppCompatActivity(), TextView.OnEditorActionListener {
                     )
                 }
             }
+        }
+
+        val exifToggle = findViewById<SwitchCompat>(R.id.remove_exif_toggle)
+        val exifToggleSetting =
+            findViewById<LinearLayout>(R.id.remove_exif_setting)
+
+        exifToggleSetting.setOnClickListener {
+            if (camConfig.isInCaptureMode) {
+                showMessage(
+                    "Images taken in this mode don't contain" +
+                            "extra EXIF data"
+                )
+            }
+        }
+
+        // Lock toggle in checked state in capture mode
+        if (camConfig.isInCaptureMode) {
+            exifToggle.isChecked = true
+            exifToggle.isEnabled = false
+        } else {
+            exifToggle.isChecked = camConfig.removeExifAfterCapture
+        }
+
+        exifToggle.setOnClickListener {
+            camConfig.removeExifAfterCapture = exifToggle.isChecked
+        }
+
+        val gSwitch = findViewById<SwitchCompat>(R.id.gyroscope_setting_switch)
+        gSwitch.isChecked = camConfig.gSuggestions
+        gSwitch.setOnClickListener {
+            camConfig.gSuggestions = gSwitch.isChecked
         }
     }
 

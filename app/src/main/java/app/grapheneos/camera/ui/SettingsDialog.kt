@@ -5,6 +5,8 @@ import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -32,6 +34,7 @@ import app.grapheneos.camera.R
 import app.grapheneos.camera.CamConfig
 import app.grapheneos.camera.ui.activities.MainActivity
 import android.provider.Settings
+import androidx.camera.video.Quality
 import app.grapheneos.camera.ui.activities.CaptureActivity
 import app.grapheneos.camera.ui.activities.MainActivity.Companion.camConfig
 import app.grapheneos.camera.ui.activities.MoreSettings
@@ -73,7 +76,7 @@ class SettingsDialog(mActivity: MainActivity) :
     private var videoQualitySetting: View
     private var timerSetting: View
 
-    private var settingsFrame: View
+    var settingsFrame: View
 
     private var moreSettingsButton: View
 
@@ -432,15 +435,15 @@ class SettingsDialog(mActivity: MainActivity) :
         }
     }
 
-    fun titleToQuality(title: String): Int {
+    fun titleToQuality(title: String): Quality {
         return when (title) {
-            "2160p (UHD)" -> QualitySelector.QUALITY_UHD
-            "1080p (FHD)" -> QualitySelector.QUALITY_FHD
-            "720p (HD)" -> QualitySelector.QUALITY_HD
-            "480p (SD)" -> QualitySelector.QUALITY_SD
+            "2160p (UHD)" -> Quality.UHD
+            "1080p (FHD)" -> Quality.FHD
+            "720p (HD)" -> Quality.HD
+            "480p (SD)" -> Quality.SD
             else -> {
                 Log.e("TAG", "Unknown quality: $title")
-                QualitySelector.QUALITY_SD
+                Quality.SD
             }
         }
     }
@@ -448,18 +451,6 @@ class SettingsDialog(mActivity: MainActivity) :
     private var wasSelfIlluminationOn = false
 
     fun selfIllumination() {
-
-//        if (mActivity.config.lensFacing == CameraSelector.LENS_FACING_BACK) {
-//
-//            mActivity.previewView.setBackgroundColor(Color.BLACK)
-//            mActivity.rootView.setBackgroundColor(Color.BLACK)
-//
-//            mActivity.tabLayout.setTabTextColors(Color.WHITE, Color.WHITE)
-//
-//            mActivity.tabLayout.setSelectedTabIndicatorColor(bgBlue)
-//
-//            return
-//        }
 
         if (camConfig.selfIlluminate) {
 
@@ -497,13 +488,6 @@ class SettingsDialog(mActivity: MainActivity) :
             setBrightness(1f)
 
         } else if (wasSelfIlluminationOn) {
-
-//            mActivity.previewView.setBackgroundColor(Color.BLACK)
-//            mActivity.rootView.setBackgroundColor(Color.BLACK)
-//
-//            mActivity.tabLayout.setTabTextColors(Color.WHITE, Color.WHITE)
-//
-//            mActivity.tabLayout.setSelectedTabIndicatorColor(bgBlue)
 
             val colorFrom: Int = mActivity.getColor(R.color.self_illumination_light)
             val colorTo: Int = Color.BLACK
@@ -562,6 +546,11 @@ class SettingsDialog(mActivity: MainActivity) :
         anim
     }
 
+    val dismissHandler = Handler(Looper.myLooper()!!)
+    val dismissCallback = Runnable {
+        dismiss()
+    }
+
     private val slideUpAnimation: Animation by lazy {
         val anim = AnimationUtils.loadAnimation(
             mActivity,
@@ -576,7 +565,10 @@ class SettingsDialog(mActivity: MainActivity) :
                 }
 
                 override fun onAnimationEnd(p0: Animation?) {
-                    dismiss()
+                    dismissHandler.removeCallbacks(dismissCallback)
+                    dismissHandler.post(
+                        dismissCallback
+                    )
                 }
 
                 override fun onAnimationRepeat(p0: Animation?) {}
@@ -617,7 +609,7 @@ class SettingsDialog(mActivity: MainActivity) :
         dialog.startAnimation(slideUpAnimation)
     }
 
-    private fun getAvailableQualities(): List<Int> {
+    private fun getAvailableQualities(): List<Quality> {
         return QualitySelector.getSupportedQualities(
             camConfig.camera!!.cameraInfo
         )
@@ -635,12 +627,12 @@ class SettingsDialog(mActivity: MainActivity) :
 
     }
 
-    private fun getTitleFor(quality: Int): String {
+    private fun getTitleFor(quality: Quality): String {
         return when (quality) {
-            QualitySelector.QUALITY_UHD -> "2160p (UHD)"
-            QualitySelector.QUALITY_FHD -> "1080p (FHD)"
-            QualitySelector.QUALITY_HD -> "720p (HD)"
-            QualitySelector.QUALITY_SD -> "480p (SD)"
+            Quality.UHD -> "2160p (UHD)"
+            Quality.FHD -> "1080p (FHD)"
+            Quality.HD -> "720p (HD)"
+            Quality.SD -> "480p (SD)"
             else -> {
                 Log.i("TAG", "Unknown constant: $quality")
                 "Unknown"
@@ -713,7 +705,7 @@ class SettingsDialog(mActivity: MainActivity) :
         videoQualitySpinner.adapter = vQAdapter
 
         val qt = if (qualityText.isEmpty()) {
-            getTitleFor(camConfig.videoQuality)
+            camConfig.videoQuality?.let { getTitleFor(it) }
         } else {
             qualityText
         }

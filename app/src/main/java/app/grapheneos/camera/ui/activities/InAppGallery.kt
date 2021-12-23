@@ -1,10 +1,13 @@
 package app.grapheneos.camera.ui.activities
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -31,12 +34,14 @@ import java.text.Format
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
+import kotlin.properties.Delegates
 
 class InAppGallery : AppCompatActivity() {
 
     lateinit var gallerySlider: ViewPager2
     private val mediaUris: ArrayList<Uri> = arrayListOf()
     private var snackBar : Snackbar? = null
+    private var ogColor by Delegates.notNull<Int>()
 
     private val isSecureMode : Boolean
         get() {
@@ -72,6 +77,8 @@ class InAppGallery : AppCompatActivity() {
                 showMessage("An unexpected error occurred after editing.")
             }
         }
+
+    private lateinit var rootView : View
 
     companion object {
         @SuppressLint("SimpleDateFormat")
@@ -318,6 +325,48 @@ class InAppGallery : AppCompatActivity() {
         alertDialog.show()
     }
 
+    private fun animateBackgroundToBlack() {
+
+        val cBgColor = (rootView.background as ColorDrawable).color
+
+        if (cBgColor == Color.BLACK) {
+            return
+        }
+
+        val bgColorAnim = ValueAnimator.ofObject(
+            ArgbEvaluator(),
+            ogColor,
+            Color.BLACK
+        )
+        bgColorAnim.duration = 300
+        bgColorAnim.addUpdateListener { animator ->
+            val color = animator.animatedValue as Int
+            rootView.setBackgroundColor(color)
+        }
+        bgColorAnim.start()
+    }
+
+    private fun animateBackgroundToOriginal() {
+
+        val cBgColor = (rootView.background as ColorDrawable).color
+
+        if (cBgColor == ogColor) {
+            return
+        }
+
+        val bgColorAnim = ValueAnimator.ofObject(
+            ArgbEvaluator(),
+            Color.BLACK,
+            ogColor,
+        )
+        bgColorAnim.duration = 300
+        bgColorAnim.addUpdateListener { animator ->
+            val color = animator.animatedValue as Int
+            this.rootView.setBackgroundColor(color)
+        }
+        bgColorAnim.start()
+    }
+
     private fun shareCurrentMedia() {
 
         if (isSecureMode) {
@@ -357,6 +406,8 @@ class InAppGallery : AppCompatActivity() {
             setTurnScreenOn(true)
         }
 
+        ogColor = ContextCompat.getColor(this, R.color.system_neutral1_900)
+
         setContentView(R.layout.gallery)
 
         supportActionBar?.let {
@@ -365,7 +416,7 @@ class InAppGallery : AppCompatActivity() {
             it.setDisplayHomeAsUpEnabled(true)
         }
 
-        val rootView = findViewById<View>(R.id.root_view)
+        rootView = findViewById(R.id.root_view)
         rootView.setOnClickListener {
             toggleActionBarState()
         }
@@ -420,16 +471,30 @@ class InAppGallery : AppCompatActivity() {
     fun toggleActionBarState() {
         supportActionBar?.let {
             if (it.isShowing) {
-                it.hide()
+                hideActionBar()
             }  else {
-                it.show()
+                showActionBar()
             }
+        }
+    }
+
+    fun showActionBar() {
+        supportActionBar?.let {
+            it.show()
+            animateBackgroundToOriginal()
+        }
+    }
+
+    fun hideActionBar() {
+        supportActionBar?.let {
+            it.hide()
+            animateBackgroundToBlack()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        supportActionBar?.show()
+        showActionBar()
     }
 
     fun showMessage(msg: String) {

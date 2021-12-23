@@ -44,6 +44,8 @@ import app.grapheneos.camera.ui.activities.VideoOnlyActivity
 import com.google.zxing.BarcodeFormat
 import java.util.concurrent.Executors
 import android.widget.Button
+import androidx.camera.video.Quality
+import app.grapheneos.camera.ui.activities.CaptureActivity
 import app.grapheneos.camera.ui.activities.MainActivity.Companion.camConfig
 
 @SuppressLint("ApplySharedPref")
@@ -89,6 +91,10 @@ class CamConfig(private val mActivity: MainActivity) {
 
             const val PHOTO_QUALITY = "photo_quality"
 
+            const val REMOVE_EXIF_AFTER_CAPTURE = "remove_exif_after_capture"
+
+            const val GYROSCOPE_SUGGESTIONS = "gyroscope_suggestions"
+
             // const val IMAGE_FILE_FORMAT = "image_quality"
             // const val VIDEO_FILE_FORMAT = "video_quality"
         }
@@ -100,7 +106,7 @@ class CamConfig(private val mActivity: MainActivity) {
 
             const val ASPECT_RATIO = AspectRatio.RATIO_4_3
 
-            const val VIDEO_QUALITY = QualitySelector.QUALITY_FHD
+            val VIDEO_QUALITY = Quality.UHD
 
             const val SELF_ILLUMINATION = false
 
@@ -124,6 +130,10 @@ class CamConfig(private val mActivity: MainActivity) {
             const val MEDIA_URIS = ""
 
             const val PHOTO_QUALITY = 0
+
+            const val REMOVE_EXIF_AFTER_CAPTURE = false
+
+            const val GYROSCOPE_SUGGESTIONS = false
 
             // const val IMAGE_FILE_FORMAT = ""
             // const val VIDEO_FILE_FORMAT = ""
@@ -307,7 +317,7 @@ class CamConfig(private val mActivity: MainActivity) {
             field = value
         }
 
-    var videoQuality: Int = SettingValues.Default.VIDEO_QUALITY
+    var videoQuality: Quality? = SettingValues.Default.VIDEO_QUALITY
         get() {
             return if (modePref.contains(videoQualityKey)) {
                 mActivity.settingsDialog.titleToQuality(
@@ -473,6 +483,43 @@ class CamConfig(private val mActivity: MainActivity) {
             val editor = commonPref.edit()
             editor.putInt(SettingValues.Key.PHOTO_QUALITY, value)
             editor.apply()
+        }
+
+    var removeExifAfterCapture : Boolean
+        get() {
+            return commonPref.getBoolean(
+                SettingValues.Key.REMOVE_EXIF_AFTER_CAPTURE,
+                SettingValues.Default.REMOVE_EXIF_AFTER_CAPTURE
+            )
+        }
+        set(value) {
+            val editor = commonPref.edit()
+            editor.putBoolean(
+                SettingValues.Key.REMOVE_EXIF_AFTER_CAPTURE,
+                value
+            )
+            editor.apply()
+        }
+
+    var gSuggestions : Boolean
+        get() {
+            return commonPref.getBoolean(
+                SettingValues.Key.GYROSCOPE_SUGGESTIONS,
+                SettingValues.Default.GYROSCOPE_SUGGESTIONS
+            )
+        }
+        set(value) {
+            val editor = commonPref.edit()
+            editor.putBoolean(
+                SettingValues.Key.GYROSCOPE_SUGGESTIONS,
+                value
+            )
+            editor.apply()
+        }
+
+    val isInCaptureMode : Boolean
+        get() {
+            return mActivity is CaptureActivity
         }
 
 //    var imageFormat : String
@@ -1004,17 +1051,17 @@ class CamConfig(private val mActivity: MainActivity) {
             return
         }
         val cameraProviderFuture = ProcessCameraProvider.getInstance(mActivity)
-        val extensionsManagerFuture = ExtensionsManager.getInstance(mActivity)
+
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
-            if (::extensionsManager.isInitialized) {
+
+            val extensionsManagerFuture = ExtensionsManager.getInstanceAsync(mActivity, cameraProvider!!)
+
+            extensionsManagerFuture.addListener({
+                extensionsManager = extensionsManagerFuture.get()
                 startCamera(forced = forced)
-            } else {
-                extensionsManagerFuture.addListener({
-                    extensionsManager = extensionsManagerFuture.get()
-                    startCamera(forced = forced)
-                }, ContextCompat.getMainExecutor(mActivity))
-            }
+            }, ContextCompat.getMainExecutor(mActivity))
+
         }, ContextCompat.getMainExecutor(mActivity))
     }
 
@@ -1053,13 +1100,9 @@ class CamConfig(private val mActivity: MainActivity) {
         // Unbind/close all other camera(s) [if any]
         cameraProvider!!.unbindAll()
 
-        if (extensionsManager.isExtensionAvailable(
-                cameraProvider!!, cameraSelector,
-                cameraMode
-            )
-        ) {
+        if (extensionsManager.isExtensionAvailable(cameraSelector, cameraMode)) {
             cameraSelector = extensionsManager.getExtensionEnabledCameraSelector(
-                cameraProvider!!, cameraSelector, cameraMode
+                cameraSelector, cameraMode
             )
         } else {
             Log.i(TAG, "The current mode isn't available for this device ")
@@ -1095,7 +1138,7 @@ class CamConfig(private val mActivity: MainActivity) {
                 videoCapture =
                     VideoCapture.withOutput(
                         Recorder.Builder()
-                            .setQualitySelector(QualitySelector.of(videoQuality))
+                            .setQualitySelector(QualitySelector.from(videoQuality!!))
                             .build()
                     )
 
@@ -1286,7 +1329,7 @@ class CamConfig(private val mActivity: MainActivity) {
         }
 
         if (extensionsManager.isExtensionAvailable(
-                cameraProvider!!, cameraSelector,
+                cameraSelector,
                 ExtensionMode.NIGHT
             )
         ) {
@@ -1294,7 +1337,7 @@ class CamConfig(private val mActivity: MainActivity) {
         }
 
         if (extensionsManager.isExtensionAvailable(
-                cameraProvider!!, cameraSelector,
+                cameraSelector,
                 ExtensionMode.BOKEH
             )
         ) {
@@ -1302,7 +1345,7 @@ class CamConfig(private val mActivity: MainActivity) {
         }
 
         if (extensionsManager.isExtensionAvailable(
-                cameraProvider!!, cameraSelector,
+                cameraSelector,
                 ExtensionMode.HDR
             )
         ) {
@@ -1310,7 +1353,7 @@ class CamConfig(private val mActivity: MainActivity) {
         }
 
         if (extensionsManager.isExtensionAvailable(
-                cameraProvider!!, cameraSelector,
+                cameraSelector,
                 ExtensionMode.FACE_RETOUCH
             )
         ) {
