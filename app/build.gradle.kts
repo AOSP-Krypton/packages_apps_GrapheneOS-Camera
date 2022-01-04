@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.LintOptions
 import java.util.Properties
 import java.io.FileInputStream
 
