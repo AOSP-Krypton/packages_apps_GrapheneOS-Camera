@@ -1,4 +1,6 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
+
     <string name="app_name">相机</string>
 
     <string name="camera_permission_dialog_title">需要相机权限</string>
@@ -97,5 +99,8 @@
     <string name="photo">照片</string>
     <string name="increase_quality">提高质量</string>
     <string name="decrease_quality">降低质量</string>
+    <string name="remove_exif_title">拍照后移除照片信息</string>
+    <string name="remove_exif_subtitle">注意：地理标签/位置选项与此设置无关。</string>
+    <string name="degree_format">%d°</string>
 
 </resources>
