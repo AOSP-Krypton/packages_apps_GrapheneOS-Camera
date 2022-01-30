@@ -210,6 +210,7 @@
 
                 <ImageView
                     android:id="@+id/decrease_photo_quality"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/remove"
@@ -220,6 +221,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_height="match_parent"
                     android:layout_width="wrap_content"
+                    android:gravity="center"
                     android:layout_gravity="center"
                     app:boxBackgroundMode="none"
                     android:clickable="true"
@@ -229,7 +231,7 @@
                         android:id="@+id/photo_quality"
                         android:layout_width="36dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="2dp"
+                        android:layout_marginStart="2dp"
                         android:paddingTop="15dp"
                         android:textSize="16sp"
                         android:maxLength="3"
@@ -242,8 +244,18 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/percent_symbol"
+                    android:textSize="16sp"
+                    android:paddingTop="16dp"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="4dp" />
+
                 <ImageView
                     android:id="@+id/increase_photo_quality"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/add"
@@ -270,7 +282,7 @@
 
             <ImageView
                 android:id="@+id/remove_exif_icon"
-                android:src="@drawable/info"
+                android:src="@drawable/info_adaptable"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:contentDescription="@string/save_image_as_previewed"

@@ -4,6 +4,11 @@ import android.content.Context
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import app.grapheneos.camera.ui.activities.MainActivity.Companion.camConfig
+import java.util.TimeZone
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 private val exifAttributes = arrayOf(
     ExifInterface.TAG_IMAGE_WIDTH,
@@ -11,7 +16,7 @@ private val exifAttributes = arrayOf(
     ExifInterface.TAG_BITS_PER_SAMPLE,
     ExifInterface.TAG_COMPRESSION,
     ExifInterface.TAG_PHOTOMETRIC_INTERPRETATION,
-    ExifInterface.TAG_ORIENTATION,
+//    ExifInterface.TAG_ORIENTATION,
     ExifInterface.TAG_SAMPLES_PER_PIXEL,
     ExifInterface.TAG_PLANAR_CONFIGURATION,
     ExifInterface.TAG_Y_CB_CR_SUB_SAMPLING,
@@ -161,7 +166,46 @@ private val exifAttributes = arrayOf(
     ExifInterface.TAG_SUBFILE_TYPE,
 )
 
-fun clearExif(context: Context, uri : Uri) {
+fun fixExif(context: Context, uri: Uri) {
+
+    val inStream = context.contentResolver.openFileDescriptor(
+        uri,
+        "rw"
+    )!!
+
+    val exifInterface = ExifInterface(inStream.fileDescriptor)
+
+    val now = Date()
+
+    val millis = TimeZone.getDefault().getOffset(now.time)
+
+    val totalMins = (millis / (1000 * 60))
+
+    val hours = (totalMins / 60)
+    var hoursStrRep = hours.toString().padStart(2, '0')
+
+    if (hours >= 0)
+        hoursStrRep = "+${hoursStrRep}"
+
+    val mins = (totalMins % 60).toString().padEnd(2, '0')
+
+    val offsetTime = "$hoursStrRep:$mins"
+
+    exifInterface.setAttribute(ExifInterface.TAG_OFFSET_TIME, offsetTime)
+    exifInterface.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, offsetTime)
+//    exifInterface.setAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED, offset_time)
+
+    val nowStrRep = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).format(now)
+
+    exifInterface.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, nowStrRep)
+    exifInterface.setAttribute(ExifInterface.TAG_DATETIME, nowStrRep)
+
+    exifInterface.saveAttributes()
+
+    inStream.close()
+}
+
+fun clearExif(context: Context, uri: Uri) {
 
     if (!camConfig.removeExifAfterCapture) return
 
@@ -237,6 +281,6 @@ fun clearExif(context: Context, uri : Uri) {
 //    exifInterface.saveAttributes()
 //}
 
-fun ExifInterface.removeAttribute(tag : String) {
+fun ExifInterface.removeAttribute(tag: String) {
     return setAttribute(tag, null)
 }

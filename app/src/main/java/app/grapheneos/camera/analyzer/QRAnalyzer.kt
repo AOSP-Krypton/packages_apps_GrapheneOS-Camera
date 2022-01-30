@@ -38,7 +38,7 @@ class QRAnalyzer(private val mActivity: MainActivity) : Analyzer {
         Log.i(TAG, "allowedFormats: ${camConfig.allowedFormats}")
 
         supportedHints[DecodeHintType.POSSIBLE_FORMATS] =
-            if(camConfig.scanAllCodes) {
+            if (camConfig.scanAllCodes) {
                 BarcodeFormat.values().asList()
             } else {
                 camConfig.allowedFormats
@@ -60,10 +60,8 @@ class QRAnalyzer(private val mActivity: MainActivity) : Analyzer {
         val previewWidth: Int
         val previewHeight: Int
 
-        val imageWidth : Int
-        val imageHeight : Int
-
-        imageData = fixOrientation(imageData, image.width, image.height, rotationDegrees)
+        val imageWidth: Int
+        val imageHeight: Int
 
         if (rotationDegrees == 0 || rotationDegrees == 180) {
             previewWidth = mActivity.previewView.height
@@ -128,63 +126,5 @@ class QRAnalyzer(private val mActivity: MainActivity) : Analyzer {
         }
 
         image.close()
-    }
-
-    private fun fixOrientation(
-        data: ByteArray,
-        imageWidth: Int,
-        imageHeight: Int,
-        rotation: Int
-    ): ByteArray {
-        return when(rotation) {
-            90 -> rotate90(data, imageWidth, imageHeight)
-            180 -> rotate180(data, imageWidth, imageHeight)
-            270 -> rotate270(data, imageWidth, imageHeight)
-            else -> imageData
-        }
-    }
-
-    private fun rotate90(
-        data: ByteArray,
-        imageWidth: Int,
-        imageHeight: Int
-    ) : ByteArray {
-
-        val yuv = ByteArray(imageWidth * imageHeight)
-        var i = 0
-        for (x in 0 until imageWidth) {
-            for (y in imageHeight - 1 downTo 0) {
-                yuv[i++] = data[y * imageWidth + x]
-            }
-        }
-
-        return yuv
-    }
-
-    private fun rotate180(
-        data: ByteArray,
-        imageWidth: Int,
-        imageHeight: Int
-    ): ByteArray {
-        val yuv = ByteArray(imageWidth * imageHeight)
-        var count = 0
-        var i: Int = imageWidth * imageHeight - 1
-        while (i >= 0) {
-            yuv[count] = data[i]
-            count++
-            i--
-        }
-
-        return yuv
-    }
-
-    private fun rotate270(
-        data: ByteArray, imageWidth: Int,
-        imageHeight: Int
-    ): ByteArray {
-        return rotate180(
-            rotate90(data, imageWidth, imageHeight),
-            imageWidth, imageHeight
-        )
     }
 }

@@ -17,12 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import app.grapheneos.camera.CamConfig
 import app.grapheneos.camera.clearExif
+import app.grapheneos.camera.fixExif
 import app.grapheneos.camera.ui.activities.MainActivity
 import app.grapheneos.camera.ui.activities.MainActivity.Companion.camConfig
 import app.grapheneos.camera.ui.activities.SecureMainActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.FileNotFoundException
 
 class ImageCapturer(private val mActivity: MainActivity) {
     private val imageFileFormat = ".jpg"
@@ -40,7 +42,8 @@ class ImageCapturer(private val mActivity: MainActivity) {
         fileName = sdf.format(date)
         fileName = "IMG_$fileName$imageFileFormat"
 
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(imageFileFormat) ?: "image/*"
+        val mimeType =
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(imageFileFormat) ?: "image/*"
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -61,24 +64,28 @@ class ImageCapturer(private val mActivity: MainActivity) {
             )
 
         } else {
+            try {
+                val parent = DocumentFile.fromTreeUri(
+                    mActivity,
+                    Uri.parse(
+                        camConfig.storageLocation
+                    )
+                )!!
 
-            val parent = DocumentFile.fromTreeUri(mActivity,
-                Uri.parse(
-                    camConfig.storageLocation
-                )
-            )!!
+                val child = parent.createFile(
+                    mimeType,
+                    fileName
+                )!!
 
-            val child = parent.createFile(
-                mimeType,
-                fileName
-            )!!
+                val oStream = mActivity.contentResolver
+                    .openOutputStream(child.uri)!!
 
-            val oStream = mActivity.contentResolver
-                .openOutputStream(child.uri)!!
+                camConfig.addToGallery(child.uri)
 
-            camConfig.addToGallery(child.uri)
-
-            return ImageCapture.OutputFileOptions.Builder(oStream)
+                return ImageCapture.OutputFileOptions.Builder(oStream)
+            } catch (exception: NullPointerException) {
+                throw FileNotFoundException("The default storage location seems to have been deleted.")
+            }
         }
     }
 
@@ -88,20 +95,28 @@ class ImageCapturer(private val mActivity: MainActivity) {
     fun takePicture() {
         if (camConfig.camera == null) return
 
-        if(isTakingPicture){
+        if (isTakingPicture) {
             mActivity.showMessage(
                 "Please wait for the last image to get processed..."
             )
             return
         }
 
-        val outputFileOptionsBuilder = genOutputBuilderForImage()
+        val outputFileOptionsBuilder: ImageCapture.OutputFileOptions.Builder?
+
+        try {
+            outputFileOptionsBuilder = genOutputBuilderForImage()
+        } catch (exception: FileNotFoundException) {
+            camConfig.onStorageLocationNotFound()
+            return
+        }
+
         val imageMetadata = ImageCapture.Metadata()
 
         imageMetadata.isReversedHorizontal =
-                camConfig.lensFacing ==
+            camConfig.lensFacing ==
                     CameraSelector.LENS_FACING_FRONT &&
-                camConfig.saveImageAsPreviewed
+                    camConfig.saveImageAsPreviewed
 
         if (camConfig.requireLocation) {
 
@@ -175,9 +190,11 @@ class ImageCapturer(private val mActivity: MainActivity) {
                         camConfig.addToGallery(imageUri)
                     }
 
-                    if(mActivity is SecureMainActivity) {
-                        mActivity.capturedFilePaths.add(camConfig.latestUri.toString())
+                    if (mActivity is SecureMainActivity) {
+                        mActivity.capturedFilePaths.add(0, camConfig.latestUri.toString())
                     }
+
+                    fixExif(mActivity, camConfig.latestUri!!)
 
                     clearExif(mActivity, camConfig.latestUri!!)
 

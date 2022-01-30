@@ -13,7 +13,6 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -30,20 +29,24 @@ import app.grapheneos.camera.ui.activities.MainActivity.Companion.camConfig
 import com.google.android.material.snackbar.Snackbar
 import java.io.OutputStream
 import java.net.URLDecoder
-import java.text.Format
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 import kotlin.properties.Delegates
+import androidx.documentfile.provider.DocumentFile
+import java.io.InputStream
+import java.lang.Exception
+import java.util.Locale
+
 
 class InAppGallery : AppCompatActivity() {
 
     lateinit var gallerySlider: ViewPager2
     private val mediaUris: ArrayList<Uri> = arrayListOf()
-    private var snackBar : Snackbar? = null
+    private var snackBar: Snackbar? = null
     private var ogColor by Delegates.notNull<Int>()
 
-    private val isSecureMode : Boolean
+    private val isSecureMode: Boolean
         get() {
             return intent.extras?.containsKey("fileSP") == true
         }
@@ -78,28 +81,56 @@ class InAppGallery : AppCompatActivity() {
             }
         }
 
-    private lateinit var rootView : View
+    private lateinit var rootView: View
 
     companion object {
         @SuppressLint("SimpleDateFormat")
-        fun convertTime(time: Long): String {
-
+        fun convertTime(time: Long, showTimeZone: Boolean = true): String {
             val date = Date(time)
-            val format: Format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+            val format = SimpleDateFormat(
+                if (showTimeZone) {
+                    "yyyy-MM-dd HH:mm:ss z"
+                } else {
+                    "yyyy-MM-dd HH:mm:ss"
+                }
+            )
+            format.timeZone = TimeZone.getDefault()
             return format.format(date)
         }
 
-        @SuppressLint("SimpleDateFormat")
-        fun convertTime(time: String): String {
-            val dateFormat = SimpleDateFormat("yyyyMMdd'T'hhmmss.SSS'Z'")
+        fun convertTimeForVideo(time: String): String {
+            val dateFormat = SimpleDateFormat("yyyyMMdd'T'HHmmss.SSS'Z'", Locale.US)
             dateFormat.timeZone = TimeZone.getTimeZone("UTC")
             val parsedDate = dateFormat.parse(time)
             return convertTime(parsedDate?.time ?: 0)
         }
 
-        fun getRelativePath(uri: Uri, path: String?, fileName: String) : String {
+        fun convertTimeForPhoto(time: String, offset: String? = null): String {
 
-            if (path==null) {
+            val timestamp = if (offset != null) {
+                "$time $offset"
+            } else {
+                time
+            }
+
+            val dateFormat = SimpleDateFormat(
+                if (offset == null) {
+                    "yyyy:MM:dd HH:mm:ss"
+                } else {
+                    "yyyy:MM:dd HH:mm:ss Z"
+                }, Locale.US
+            )
+
+            if (offset == null) {
+                dateFormat.timeZone = TimeZone.getDefault()
+            }
+            val parsedDate = dateFormat.parse(timestamp)
+            return convertTime(parsedDate?.time ?: 0, offset != null)
+        }
+
+        fun getRelativePath(uri: Uri, path: String?, fileName: String): String {
+
+            if (path == null) {
                 val dPath = URLDecoder.decode(
                     uri.lastPathSegment,
                     "UTF-8"
@@ -161,7 +192,7 @@ class InAppGallery : AppCompatActivity() {
     }
 
     private fun editCurrentMedia() {
-        if (isSecureMode){
+        if (isSecureMode) {
             showMessage(
                 "Editing images in secure mode is not allowed."
             )
@@ -190,13 +221,35 @@ class InAppGallery : AppCompatActivity() {
             .setMessage("Do you really want to delete this file?")
             .setPositiveButton("Delete") { _, _ ->
 
-                camConfig.removeFromGallery(mediaUri)
+                val res: Boolean
 
-                showMessage(
-                    "File deleted successfully"
-                )
+                if (mediaUri.authority == "media") {
 
-                (gallerySlider.adapter as GallerySliderAdapter).removeUri(mediaUri)
+                    res = contentResolver.delete(
+                        mediaUri,
+                        null,
+                        null
+                    ) == 1
+
+                } else {
+                    val doc = DocumentFile.fromSingleUri(
+                        this,
+                        mediaUri
+                    )!!
+
+                    res = doc.delete()
+                }
+
+                if (res) {
+                    camConfig.removeFromGallery(mediaUri)
+                    showMessage("File deleted successfully")
+                    (gallerySlider.adapter as GallerySliderAdapter).removeUri(mediaUri)
+                } else {
+                    showMessage(
+                        "An unexpected error occurred while deleting this" +
+                                " file"
+                    )
+                }
             }
             .setNegativeButton("Cancel", null).show()
 
@@ -231,8 +284,8 @@ class InAppGallery : AppCompatActivity() {
 
         mediaCursor.close()
 
-        val dateAdded : String?
-        val dateModified : String?
+        var dateAdded: String? = null
+        var dateModified: String? = null
 
         if (VideoCapturer.isVideo(mediaUri)) {
 
@@ -243,7 +296,7 @@ class InAppGallery : AppCompatActivity() {
             )
 
             val date =
-                convertTime(
+                convertTimeForVideo(
                     mediaMetadataRetriever.extractMetadata(
                         MediaMetadataRetriever.METADATA_KEY_DATE
                     )!!
@@ -258,19 +311,28 @@ class InAppGallery : AppCompatActivity() {
             )
             val eInterface = ExifInterface(iStream!!)
 
-            dateAdded = eInterface.getAttribute(
-                "DateTimeOriginal"
-            )
+            val offset = eInterface.getAttribute(ExifInterface.TAG_OFFSET_TIME)
 
-            dateModified = eInterface.getAttribute(
-                "DateTime"
-            )
+            if (eInterface.hasAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)) {
+                dateAdded = convertTimeForPhoto(
+                    eInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)!!,
+                    offset
+                )
+            }
+
+            if (eInterface.hasAttribute(ExifInterface.TAG_DATETIME)) {
+                dateModified = convertTimeForPhoto(
+                    eInterface.getAttribute(ExifInterface.TAG_DATETIME)!!,
+                    offset
+                )
+            }
 
             iStream.close()
         }
 
 
-        val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        val alertDialog: AlertDialog.Builder =
+            AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 
         alertDialog.setTitle("File Details")
 
@@ -285,7 +347,7 @@ class InAppGallery : AppCompatActivity() {
         detailsBuilder.append("\n\n")
 
         detailsBuilder.append("File Size: \n")
-        if(size==0){
+        if (size == 0) {
             detailsBuilder.append("Loading...")
         } else {
             detailsBuilder.append(
@@ -299,10 +361,8 @@ class InAppGallery : AppCompatActivity() {
 
         detailsBuilder.append("\n\n")
 
-        Log.i("TAG", "Date added: $dateAdded")
-
         detailsBuilder.append("File Created On: \n")
-        if(dateAdded==null){
+        if (dateAdded == null) {
             detailsBuilder.append("Not found")
         } else {
             detailsBuilder.append(dateAdded)
@@ -311,7 +371,7 @@ class InAppGallery : AppCompatActivity() {
         detailsBuilder.append("\n\n")
 
         detailsBuilder.append("Last Modified On: \n")
-        if(dateModified==null){
+        if (dateModified == null) {
             detailsBuilder.append("Not found")
         } else {
             detailsBuilder.append(dateModified)
@@ -427,7 +487,7 @@ class InAppGallery : AppCompatActivity() {
         if (isSecureMode) {
             val spName = intent.extras?.getString("fileSP")
             val sp = getSharedPreferences(spName, Context.MODE_PRIVATE)
-            val filePaths = sp.getStringSet("filePaths", emptySet())!!
+            val filePaths = sp.getString("filePaths", "")!!.split(",")
             val mediaFileArray: Array<Uri> =
                 filePaths.stream().map { Uri.parse(it) }.toArray { length ->
                     arrayOfNulls<Uri>(length)
@@ -472,7 +532,7 @@ class InAppGallery : AppCompatActivity() {
         supportActionBar?.let {
             if (it.isShowing) {
                 hideActionBar()
-            }  else {
+            } else {
                 showActionBar()
             }
         }
@@ -492,8 +552,53 @@ class InAppGallery : AppCompatActivity() {
         }
     }
 
+    private fun uriExists(uri: Uri): Boolean {
+        try {
+            val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return false
+            inputStream.close()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+
+        val gsaUris = (gallerySlider.adapter as GallerySliderAdapter).mediaUris
+
+        if (isSecureMode) {
+
+            val newUris: ArrayList<Uri> = arrayListOf()
+
+            for (mediaUri in gsaUris) {
+                if (uriExists(mediaUri)) {
+                    newUris.add(mediaUri)
+                }
+            }
+
+            // If mediaUris have changed
+            if (mediaUris.size != newUris.size) {
+                gallerySlider.adapter = GallerySliderAdapter(this, newUris)
+            }
+
+        } else {
+
+            val newUris = camConfig.mediaUris
+            var urisHaveChanged = false
+
+            for (mediaUri in gsaUris) {
+                if (!newUris.contains(mediaUri)) {
+                    urisHaveChanged = true
+                    break
+                }
+            }
+
+            if (urisHaveChanged) {
+                gallerySlider.adapter = GallerySliderAdapter(this, newUris)
+            }
+        }
+
         showActionBar()
     }
 

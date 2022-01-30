@@ -29,6 +29,7 @@ import java.lang.NullPointerException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.FileNotFoundException
 
 class VideoCapturer(private val mActivity: MainActivity) {
 
@@ -37,7 +38,7 @@ class VideoCapturer(private val mActivity: MainActivity) {
 
     private val videoFileFormat = ".mp4"
 
-    var recording: Recording? = null
+    private var recording: Recording? = null
 
     var isPaused = false
         set(value) {
@@ -60,12 +61,12 @@ class VideoCapturer(private val mActivity: MainActivity) {
     private val runnable = Runnable {
         ++elapsedSeconds
         val secs = padTo2(elapsedSeconds % 60)
-        val mins = padTo2(elapsedSeconds / 60 % 60)
+        val min = padTo2(elapsedSeconds / 60 % 60)
         val hours = padTo2(elapsedSeconds / 3600)
         val timerText: String = if (hours == "00") {
-            "$mins:$secs"
+            "$min:$secs"
         } else {
-            "$hours:$mins:$secs"
+            "$hours:$min:$secs"
         }
         mActivity.timerView.text = timerText
         startTimer()
@@ -99,7 +100,8 @@ class VideoCapturer(private val mActivity: MainActivity) {
         fileName = sdf.format(date)
         fileName = "VID_$fileName$videoFileFormat"
 
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(videoFileFormat) ?: "video/mp4"
+        val mimeType =
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(videoFileFormat) ?: "video/mp4"
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -108,7 +110,8 @@ class VideoCapturer(private val mActivity: MainActivity) {
         }
 
         if (mActivity is VideoCaptureActivity
-            && mActivity.isOutputUriAvailable()) {
+            && mActivity.isOutputUriAvailable()
+        ) {
 
             return camConfig.videoCapture!!.output.prepareRecording(
                 mActivity,
@@ -133,27 +136,33 @@ class VideoCapturer(private val mActivity: MainActivity) {
                         .build()
                 )
             } else {
+                try {
+                    val parent = DocumentFile.fromTreeUri(
+                        mActivity, Uri.parse(
+                            camConfig.storageLocation
+                        )
+                    )!!
 
-                val parent = DocumentFile.fromTreeUri(mActivity, Uri.parse(
-                    camConfig.storageLocation
-                ))!!
+                    val child = parent.createFile(
+                        mimeType,
+                        fileName
+                    )!!
 
-                val child = parent.createFile(
-                    mimeType,
-                    fileName
-                )!!
+                    val fd = mActivity.contentResolver.openFileDescriptor(
+                        child.uri,
+                        "w"
+                    )!!
 
-                val fd = mActivity.contentResolver.openFileDescriptor(
-                    child.uri,
-                    "w"
-                )!!
+                    camConfig.addToGallery(child.uri)
 
-                camConfig.addToGallery(child.uri)
+                    return camConfig.videoCapture!!.output.prepareRecording(
+                        mActivity,
+                        FileDescriptorOutputOptions.Builder(fd).build()
+                    )
 
-                return camConfig.videoCapture!!.output.prepareRecording(
-                    mActivity,
-                    FileDescriptorOutputOptions.Builder(fd).build()
-                )
+                } catch (exception: NullPointerException) {
+                    throw FileNotFoundException()
+                }
             }
         }
     }
@@ -161,12 +170,20 @@ class VideoCapturer(private val mActivity: MainActivity) {
     fun startRecording() {
         if (camConfig.camera == null) return
 
-        val pendingRecording = genPendingRecording()
+        val pendingRecording: PendingRecording?
+
+        try {
+            pendingRecording = genPendingRecording()
+        } catch (exception: Exception) {
+            camConfig.onStorageLocationNotFound()
+            return
+        }
 
         if (mActivity.settingsDialog.includeAudioToggle.isChecked) {
             if (ActivityCompat.checkSelfPermission(
                     mActivity,
-                    Manifest.permission.RECORD_AUDIO)
+                    Manifest.permission.RECORD_AUDIO
+                )
                 == PackageManager.PERMISSION_GRANTED
             ) {
                 pendingRecording.withAudioEnabled()
@@ -179,62 +196,61 @@ class VideoCapturer(private val mActivity: MainActivity) {
         beforeRecordingStarts()
 
         recording = pendingRecording.start(
-            ContextCompat.getMainExecutor(mActivity),
-            {
-                if (it is VideoRecordEvent.Finalize) {
-                    afterRecordingStops()
+            ContextCompat.getMainExecutor(mActivity)
+        ) {
+            if (it is VideoRecordEvent.Finalize) {
+                afterRecordingStops()
 
-                    camConfig.mPlayer.playVRStopSound()
+                camConfig.mPlayer.playVRStopSound()
 
-                    if (it.hasError()) {
+                if (it.hasError()) {
 
-                        if (it.error == 8) {
-                            mActivity.showMessage(
-                                "Recording too short to be saved"
-                            )
-                        } else {
-                            mActivity.showMessage(
-                                "Unable to save recording (Error code: " +
-                                        "${it.error})"
-                            )
-                        }
+                    if (it.error == 8) {
+                        mActivity.showMessage(
+                            "Recording too short to be saved"
+                        )
                     } else {
+                        mActivity.showMessage(
+                            "Unable to save recording (Error code: " +
+                                    "${it.error})"
+                        )
+                    }
+                } else {
 
-                        val outputUri = it.outputResults.outputUri
+                    val outputUri = it.outputResults.outputUri
 
-                        try {
+                    try {
 
-                            val stream = mActivity.contentResolver
-                                .openInputStream(
-                                    outputUri
-                                ) ?: throw NullPointerException()
+                        val stream = mActivity.contentResolver
+                            .openInputStream(
+                                outputUri
+                            ) ?: throw NullPointerException()
 
-                            stream.close()
+                        stream.close()
 
-                            if (mActivity is VideoCaptureActivity) {
-                                mActivity.afterRecording(outputUri)
-                                return@start
-                            } else {
-                                camConfig.addToGallery(outputUri)
-                            }
-
-                        } catch (exception : Exception) {
-
-                            if (mActivity is VideoCaptureActivity) {
-                                mActivity.afterRecording(mActivity.outputUri)
-                                return@start
-                            }
+                        if (mActivity is VideoCaptureActivity) {
+                            mActivity.afterRecording(outputUri)
+                            return@start
+                        } else {
+                            camConfig.addToGallery(outputUri)
                         }
 
-                        camConfig.updatePreview()
+                    } catch (exception: Exception) {
 
-                        if(mActivity is SecureMainActivity) {
-                            mActivity.capturedFilePaths.add(outputUri.toString())
+                        if (mActivity is VideoCaptureActivity) {
+                            mActivity.afterRecording(mActivity.outputUri)
+                            return@start
                         }
+                    }
+
+                    camConfig.updatePreview()
+
+                    if (mActivity is SecureMainActivity) {
+                        mActivity.capturedFilePaths.add(0, outputUri.toString())
                     }
                 }
             }
-        )
+        }
 
         isRecording = true
     }
@@ -336,7 +352,7 @@ class VideoCapturer(private val mActivity: MainActivity) {
     }
 
     companion object {
-//        private const val TAG = "VideoCapturer"
+        //        private const val TAG = "VideoCapturer"
         fun isVideo(uri: Uri): Boolean {
             return uri.encodedPath?.contains("video") == true ||
                     uri.encodedPath?.endsWith(".mp4") == true
