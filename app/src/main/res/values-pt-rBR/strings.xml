@@ -20,7 +20,6 @@
     <string name="flash_mode">Modo de flash</string>
     <string name="capture_mode">Modo de Captura</string>
     <string name="start_value_timer">00:00</string>
-    <string name="toggle_torch">Ligar a lanterna</string>
     <string name="zoom_in">Aumentar o zoom</string>
     <string name="zoom_out">Diminuir o zoom</string>
     <string name="scan_result">Resultado de escaneamento</string>
@@ -32,23 +31,19 @@
     <string name="aspect_ratio">Relação de Aspecto</string>
     <string name="toggle_flash">Alternar o Flash</string>
     <string name="grid_toggle">Alternância da grade</string>
-    <string name="image_format">Formato da imagem</string>
     <string name="include_audio">Incluir áudio</string>
     <string name="video_quality">Qualidade do vídeo</string>
     <string name="optimize_for">Otimizar para</string>
     <string name="quality">Qualidade</string>
     <string name="latency">Latência</string>
     <string name="preview">Pré-visualização</string>
-    <string name="go_back_to_camera">Voltar para a câmera</string>
     <string name="file_info">Informações do arquivo</string>
-    <string name="share_file">Compartilhar arquivo</string>
     <string name="delete_file">Excluir arquivo</string>
     <string name="edit">Editar</string>
     <string name="self_illumination">Auto-iluminação</string>
     <string name="focus_timeout">Tempo limite de foco</string>
     <string name="timer">Temporizador</string>
     <string name="cancel_timer">Cancelar Temporizador</string>
-    <string name="media_location">Localização da mídia</string>
     <string name="camera_sounds">Sons da câmera</string>
     <string name="video_capture_label">Gravar vídeo</string>
 
@@ -62,21 +57,15 @@
     <string name="qr_scan_mode">QR SCAN</string>
     <string name="aspect_ratio_16_9">16:9</string>
     <string name="aspect_ratio_4_3">4:3</string>
-    <string name="go_back_to_gallery">Voltar para a Galeria</string>
-    <string name="delete">Excluir</string>
     <string name="share_media">Compartilhar Mídia</string>
     <string name="rec_without_audio">Iniciar a gravação sem áudio</string>
-    <string name="save_image_as_preview">Salvar imagem como pré-visualização</string>
     <string name="qr_scan_toggle">Alternância de leitura de QR</string>
     <string name="qr_scan">Código QR</string>
     <string name="data_matrix">Matriz de dados</string>
     <string name="aztec_code">Código Aztec</string>
-    <string name="maxicode">Código Maxi</string>
     <string name="more_options">Mais opções</string>
-    <string name="codabar">código de barras</string>
     <string name="pdf_417">PDF 417</string>
     <string name="more_settings">Mais configurações</string>
-    <string name="additional_settings">Configurações adicionais</string>
 
     <string name="general">Geral</string>
 

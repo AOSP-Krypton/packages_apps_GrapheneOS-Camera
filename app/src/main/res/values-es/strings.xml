@@ -1,5 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingTranslation">
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="app_name">Cámara</string>
 
@@ -12,7 +11,7 @@
     <string name="audio_permission_dialog_message">La aplicación necesita permiso para acceder al micrófono para grabar un vídeo que contenga audio. Por favor, proporcione el permiso requerido a través de los Ajustes para proceder con esta configuración. Si no necesitas que tu vídeo contenga audio, puedes simplemente desactivarlo (y volver a activarlo más tarde en los ajustes).</string>
 
     <string name="location_permission_dialog_title">Location permission required</string>
-    <string name="location_permission_dialog_message">
+    <string name="location_permission_dialog_message" tools:ignore="Typos">
         The app needs location permission for geo-tagging. Please provide the required permission via Settings in order to use this app.
     </string>
 
@@ -22,7 +21,6 @@
     <string name="flash_mode">Modo de flash</string>
     <string name="capture_mode">Modo de captura</string>
     <string name="start_value_timer">00:00</string>
-    <string name="toggle_torch">Encender linterna</string>
     <string name="zoom_in">Acercar</string>
     <string name="zoom_out">Alejar</string>
     <string name="scan_result">Resultado del escaneo</string>
@@ -34,23 +32,19 @@
     <string name="aspect_ratio">Relación de aspecto</string>
     <string name="toggle_flash">Alternar flash</string>
     <string name="grid_toggle">Alternar la rejilla</string>
-    <string name="image_format">Formato de la imagen</string>
     <string name="include_audio">Incluir audio</string>
     <string name="video_quality">Calidad del vídeo</string>
     <string name="optimize_for">Optimizar para</string>
     <string name="quality">Calidad</string>
     <string name="latency">Latencia</string>
     <string name="preview">Vista previa</string>
-    <string name="go_back_to_camera">Volver a la cámara</string>
     <string name="file_info">Información del archivo</string>
-    <string name="share_file">Compartir el archivo</string>
     <string name="delete_file">Eliminar el archivo</string>
     <string name="edit">Editar</string>
     <string name="self_illumination">Autoiluminación</string>
     <string name="focus_timeout">Tiempo de espera del enfoque</string>
     <string name="timer">Temporizador</string>
     <string name="cancel_timer">Cancelar temporizador</string>
-    <string name="media_location">Ubicación de los medios</string>
     <string name="camera_sounds">Sonidos de la cámara</string>
     <string name="video_capture_label">Grabar vídeo</string>
 
@@ -64,21 +58,15 @@
     <string name="qr_scan_mode">ESCANEAR QR</string>
     <string name="aspect_ratio_16_9">16:9</string>
     <string name="aspect_ratio_4_3">4:3</string>
-    <string name="go_back_to_gallery">Volver a la galería</string>
-    <string name="delete">Borrar</string>
     <string name="share_media">Compartir medios</string>
     <string name="rec_without_audio">Empezar a grabar sin audio</string>
-    <string name="save_image_as_preview">Guardar imagen como vista previa</string>
     <string name="qr_scan_toggle">Activación del escáner QR</string>
     <string name="qr_scan">Código QR</string>
     <string name="data_matrix">Matriz de datos</string>
     <string name="aztec_code">Código Azteca</string>
-    <string name="maxicode">Código Maxi</string>
     <string name="more_options">Más opciones</string>
-    <string name="codabar">Codabar</string>
     <string name="pdf_417">PDF 417</string>
     <string name="more_settings">Más ajustes</string>
-    <string name="additional_settings">Ajustes adicionales</string>
 
     <string name="general">General</string>
 
@@ -99,8 +87,5 @@
     <string name="photo">Foto</string>
     <string name="increase_quality">Aumentar la calidad</string>
     <string name="decrease_quality">Disminuir la calidad</string>
-    <string name="remove_exif_title">Eliminar los datos EXIF después de la captura</string>
-    <string name="remove_exif_subtitle">Nota: La opción de geoetiquetado/localización es independiente de esta configuración</string>
-    <string name="degree_format">%d°</string>
 
 </resources>

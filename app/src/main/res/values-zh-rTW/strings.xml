@@ -1,5 +1,4 @@
-﻿<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingTranslation">
+﻿<resources>
 
     <string name="app_name">相機</string>
 
@@ -22,7 +21,6 @@
     <string name="flash_mode">Flash Mode</string>
     <string name="capture_mode">Capture Mode</string>
     <string name="start_value_timer">00:00</string>
-    <string name="toggle_torch">切換手電筒</string>
     <string name="zoom_in">放大</string>
     <string name="zoom_out">縮小</string>
     <string name="scan_result">掃描結果</string>
@@ -34,23 +32,19 @@
     <string name="aspect_ratio">縱橫比</string>
     <string name="toggle_flash">切換閃光燈</string>
     <string name="grid_toggle">網格切換</string>
-    <string name="image_format">圖片格式</string>
     <string name="include_audio">包含音訊</string>
     <string name="video_quality">影片質量</string>
     <string name="optimize_for">側重於</string>
     <string name="quality">質量</string>
     <string name="latency">延遲</string>
     <string name="preview">預覽</string>
-    <string name="go_back_to_camera">返回相機</string>
     <string name="file_info">資訊</string>
-    <string name="share_file">分享照片</string>
     <string name="delete_file">刪除</string>
     <string name="edit">編輯</string>
     <string name="self_illumination">Self Illumination</string>
     <string name="focus_timeout">對焦超時</string>
     <string name="timer">計時器</string>
     <string name="cancel_timer">取消計時器</string>
-    <string name="media_location">媒體位置</string>
     <string name="camera_sounds">快門聲</string>
     <string name="video_capture_label">錄製影片</string>
 
@@ -64,21 +58,15 @@
     <string name="qr_scan_mode">二維碼</string>
     <string name="aspect_ratio_16_9">16:9</string>
     <string name="aspect_ratio_4_3">4:3</string>
-    <string name="go_back_to_gallery">回到相簿</string>
-    <string name="delete">刪除</string>
     <string name="share_media">分享</string>
     <string name="rec_without_audio">開始無聲錄製</string>
-    <string name="save_image_as_preview">Save Image as Previewed</string>
     <string name="qr_scan_toggle">切換二維碼掃描</string>
     <string name="qr_scan">二維碼</string>
     <string name="data_matrix">Data Matrix</string>
     <string name="aztec_code">Aztec Code</string>
-    <string name="maxicode">Maxi Code</string>
     <string name="more_options">更多</string>
-    <string name="codabar">Codabar</string>
     <string name="pdf_417">PDF 417</string>
     <string name="more_settings">更多設定</string>
-    <string name="additional_settings">附加設定</string>
 
     <string name="general">通用</string>
 
@@ -99,8 +87,5 @@
     <string name="photo">照片</string>
     <string name="increase_quality">提高質量</string>
     <string name="decrease_quality">降低質量</string>
-    <string name="remove_exif_title">拍照後移除照片資訊</string>
-    <string name="remove_exif_subtitle">注意：地理標籤/位置選項與此設定無關。</string>
-    <string name="degree_format">%d°</string>
 
 </resources>

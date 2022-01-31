@@ -20,7 +20,6 @@
     <string name="flash_mode">Mode Lampu Kilat</string>
     <string name="capture_mode">Mode Tangkap</string>
     <string name="start_value_timer">00:00</string>
-    <string name="toggle_torch">Beralih Obor</string>
     <string name="zoom_in">Perbesar</string>
     <string name="zoom_out">Perkecil</string>
     <string name="scan_result">Hasil Pemindaian</string>
@@ -32,23 +31,19 @@
     <string name="aspect_ratio">Rasio Aspek</string>
     <string name="toggle_flash">Beralih Lampu Kilat</string>
     <string name="grid_toggle">Beralih Kisi</string>
-    <string name="image_format">Format Gambar</string>
     <string name="include_audio">Sertakan Audio</string>
     <string name="video_quality">Kualitas Video</string>
     <string name="optimize_for">Optimalkan untuk</string>
     <string name="quality">Kualitas</string>
     <string name="latency">Latency</string>
     <string name="preview">Pratinjau</string>
-    <string name="go_back_to_camera">Kembali ke kamera</string>
     <string name="file_info">File Info</string>
-    <string name="share_file">Berbagi berkas</string>
     <string name="delete_file">Menghapus file</string>
     <string name="edit">Sunting</string>
     <string name="self_illumination">Iluminasi Diri</string>
     <string name="focus_timeout">Batas waktu fokus</string>
     <string name="timer">Timer</string>
     <string name="cancel_timer">Batalkan Timer</string>
-    <string name="media_location">Lokasi Media</string>
     <string name="camera_sounds">Suara Kamera</string>
     <string name="video_capture_label">Merekam Video</string>
 
@@ -62,21 +57,15 @@
     <string name="qr_scan_mode">PEMINDAIAN QR</string>
     <string name="aspect_ratio_16_9">16:9</string>
     <string name="aspect_ratio_4_3">4:3</string>
-    <string name="go_back_to_gallery">Kembali ke Galeri</string>
-    <string name="delete">Menghapus</string>
     <string name="share_media">Bagi Media</string>
     <string name="rec_without_audio">Mulai merekam tanpa audio</string>
-    <string name="save_image_as_preview">Simpan Gambar sebagai Pratinjau</string>
     <string name="qr_scan_toggle">Beralih pemindaian QR</string>
     <string name="qr_scan">Kode QR</string>
     <string name="data_matrix">Matriks Data</string>
     <string name="aztec_code">Kode Aztec</string>
-    <string name="maxicode">Kode Maxi</string>
     <string name="more_options">Opsi Lainnya</string>
-    <string name="codabar">Codabar</string>
     <string name="pdf_417">PDF 417</string>
     <string name="more_settings">Pengaturan Lainnya</string>
-    <string name="additional_settings">Setelan Tambahan</string>
 
     <string name="general">Umum</string>
 
